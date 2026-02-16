@@ -7,8 +7,14 @@ WORKDIR /app
 # 의존성 파일 복사
 COPY requirements.txt .
 
-# 의존성 설치
-RUN pip install --no-cache-dir -r requirements.txt
+
+# # 의존성 설치
+# RUN pip install --no-cache-dir -r requirements.txt
+
+# setuptools와 wheel을 최신 버전으로 업그레이드하여 취약점 패치
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
+
 
 # 애플리케이션 코드 복사
 COPY app.py .
