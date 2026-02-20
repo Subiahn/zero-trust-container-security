@@ -28,6 +28,11 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+      - name: Run tests with coverage
+        run: |
+          pip install pytest pytest-cov flask
+          pytest tests/ --cov=app --cov-report=xml
+
       - name: SonarQube Quality Gate check
         uses: SonarSource/sonarqube-quality-gate-action@master
         timeout-minutes: 5
