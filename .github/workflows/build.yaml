@@ -34,6 +34,13 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+      - name: Print SonarCloud Issues
+        if: failure()
+        run: |
+          curl -s -u ${{ secrets.SONAR_TOKEN }}: \
+            "https://sonarcloud.io/api/issues/search?projectKeys=Subiahn_zero-trust-container-security&types=VULNERABILITY&resolved=false" \
+            | jq '.issues[] | "🔴 \(.severity) - \(.message)\n   \(.component):\(.line)"' -r
+
   # ============================================
   # Job 2: 이미지 빌드 및 Trivy 스캔 (기존 파이프라인)
   # SonarQube 통과 후에만 실행됩니다
