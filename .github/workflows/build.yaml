@@ -23,15 +23,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install fastapi uvicorn pydantic httpx pytest pytest-cov
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ --cov=app --cov-report=xml --cov-report=term
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Run tests with coverage
-        run: |
-          pip install pytest pytest-cov flask
-          pytest tests/ --cov=app --cov-report=xml
 
       - name: SonarQube Quality Gate check
         uses: SonarSource/sonarqube-quality-gate-action@master
@@ -39,44 +47,34 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Print SonarCloud Issues
+      - name: Print SonarCloud Issues (실패 시)
         if: failure()
         run: |
-          echo "=== 🔴 Vulnerabilities ==="
           curl -s -u ${{ secrets.SONAR_TOKEN }}: \
             "https://sonarcloud.io/api/issues/search?projectKeys=Subiahn_zero-trust-container-security&types=VULNERABILITY&resolved=false" \
             | jq '.issues[] | "🔴 \(.severity) - \(.message)\n   \(.component):\(.line)"' -r
 
-          echo "=== 🟡 Security Hotspots ==="
-          curl -s -u ${{ secrets.SONAR_TOKEN }}: \
-            "https://sonarcloud.io/api/hotspots/search?projectKey=Subiahn_zero-trust-container-security&status=TO_REVIEW" \
-            | jq '.hotspots[] | "🟡 \(.vulnerabilityProbability) - \(.message)\n   \(.component):\(.line)"' -r
-
   # ============================================
-  # Job 2: 이미지 빌드 및 Trivy 스캔 (기존 파이프라인)
-  # SonarQube 통과 후에만 실행됩니다
+  # Job 2: 이미지 빌드 및 Trivy 스캔
+  # SonarQube 통과 후에만 실행
   # ============================================
   build-and-scan:
     runs-on: ubuntu-latest
     needs: sonarqube-scan
 
     steps:
-      # 1. 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Docker Buildx 설정
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 3. Docker Hub 로그인
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 4. 이미지 메타데이터 추출
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -88,7 +86,6 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
-      # 5. Docker 이미지 빌드
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
@@ -100,7 +97,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # 6. Trivy 취약점 스캔
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -111,7 +107,6 @@ jobs:
           vuln-type: "os,library"
           severity: "CRITICAL,HIGH"
 
-      # 7. 스캔 통과 시 이미지 푸시
       - name: Push Docker image to Docker Hub
         if: success()
         uses: docker/build-push-action@v5
