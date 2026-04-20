@@ -1,0 +1,14 @@
+.git
+.github
+.env
+.env.*
+*.md
+tests/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+coverage.xml
+.coverage
+sonar-project.properties
