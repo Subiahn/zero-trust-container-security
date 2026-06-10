@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip setuptools && \
+RUN pip install --no-cache-dir pip==26.0.1 setuptools==82.0.1 && \
     pip install --no-cache-dir --only-binary :all: -r requirements.txt
 
 COPY main.py .
