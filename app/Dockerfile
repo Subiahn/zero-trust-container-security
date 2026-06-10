@@ -2,14 +2,13 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
 
-# requirements.txt 해시 고정
 COPY requirements-hashed.txt .
-RUN pip install --no-cache-dir --only-binary :all: \
-    pip==26.0.1 \
-    setuptools==82.0.1 && \
-    pip install --no-cache-dir --only-binary :all: \
+
+RUN python -m pip install --no-cache-dir --only-binary=:all: \
     --require-hashes -r requirements-hashed.txt
 
 COPY main.py .
