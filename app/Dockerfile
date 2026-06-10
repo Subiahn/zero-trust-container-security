@@ -6,8 +6,8 @@ RUN apt-get update \
     && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements-hashed.txt .
-
+# COPY requirements-hashed.txt .
+COPY requirements-test-vuln-hashed.txt .
 RUN python -m pip install --no-cache-dir --only-binary=:all: \
     --require-hashes -r requirements-hashed.txt
 
