@@ -70,16 +70,19 @@ jobs:
           pip install fastapi uvicorn pydantic httpx wheel
 
       - name: Run OWASP Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: "zero-trust-container-security"
-          path: "."
-          format: "HTML"
-          args: >
-            --enableRetired
-            --failOnCVSS 7
+        run: |
+          VERSION=$(curl -s https://dependency-check.github.io/DependencyCheck/current.txt)
+          curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v${VERSION}/dependency-check-${VERSION}-release.zip" --output dependency-check.zip
+          unzip dependency-check.zip
+          ./dependency-check/bin/dependency-check.sh \
+            --project "zero-trust-container-security" \
+            --scan . \
+            --format HTML \
+            --out reports \
+            --nvdApiKey ${{ secrets.NVD_API_KEY }} \
+            --enableRetired \
+            --failOnCVSS 7 \
             --exclude "**/*.py"
-            --nvdApiKey ${{ secrets.NVD_API_KEY }}
 
       - name: Upload report
         uses: actions/upload-artifact@v4
