@@ -9,7 +9,7 @@ RUN apt-get update \
 # COPY requirements-hashed.txt .
 COPY requirements-test-vuln-hashed.txt .
 RUN python -m pip install --no-cache-dir --only-binary=:all: \
-    --require-hashes -r requirements-hashed.txt
+    --require-hashes -r requirements-test-vuln-hashed.txt
 
 COPY main.py .
 
