@@ -91,7 +91,6 @@ jobs:
             --nvdApiKey ${{ secrets.NVD_API_KEY }} \
             --enableRetired \
             --failOnCVSS 7 \
-            --exclude "**/*.py"
 
       - name: Run pip-audit (Python)
         run: |
